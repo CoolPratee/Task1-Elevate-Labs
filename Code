@@ -1,0 +1,41 @@
+import pandas as pd
+
+# 1. Load dataset
+df = pd.read_csv("customer_personality_extended.csv")
+
+# 2. Check basic info
+print("Initial Shape:", df.shape)
+print(df.info())
+
+# 3. Remove duplicates
+df.drop_duplicates(inplace=True)
+
+# 4. Handle missing values
+# Fill numerical columns with median, categorical with mode
+for col in df.columns:
+    if df[col].dtype in ['int64', 'float64']:
+        df[col].fillna(df[col].median(), inplace=True)
+    else:
+        df[col].fillna(df[col].mode()[0], inplace=True)
+
+# 5. Standardize text columns
+text_cols = ['Education', 'Marital_Status', 'Country']
+for col in text_cols:
+    df[col] = df[col].str.strip().str.title()
+
+# 6. Convert date format to dd-mm-yyyy
+df['Dt_Customer'] = pd.to_datetime(df['Dt_Customer'], errors='coerce')
+df['Dt_Customer'] = df['Dt_Customer'].dt.strftime('%d-%m-%Y')
+
+# 7. Rename columns to lowercase with underscores
+df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
+
+# 8. Fix data types
+df['year_birth'] = df['year_birth'].astype(int)
+df['income'] = df['income'].astype(float)
+
+# 9. Save cleaned dataset
+df.to_csv("customer_personality_cleaned.csv", index=False)
+
+print("Final Shape:", df.shape)
+print("Data cleaning complete. Cleaned file saved as customer_personality_cleaned.csv")
